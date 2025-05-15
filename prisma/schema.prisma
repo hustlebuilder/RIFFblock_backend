@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(uuid())
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
+  bio            String?
+  location       String?
+  ensName        String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  wallets        Wallet[]
+  riffs          Riff[]
+  nfts           NFT[]
+  stakingRecords Staking[]
+  tips           Tip[]
+  collections    Collection[]
+}
+
+model Wallet {
+  id        String   @id @default(uuid())
+  address   String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Riff {
+  id              String      @id @default(uuid())
+  title           String
+  description     String?
+  audioUrl        String
+  coverImageUrl   String?
+  genre           String?
+  mood            String?
+  instrument      String?
+  keySignature    String?
+  timeSignature   String?
+  isBargainBin    Boolean     @default(false)
+  duration        Float?
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  collectionId    String?
+  collection      Collection? @relation(fields: [collectionId], references: [id])
+  nft             NFT?
+  stakingRecords  Staking[]
+  tips            Tip[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model Collection {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  riffs     Riff[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model NFT {
+  id                   String   @id @default(uuid())
+  tokenId              String?  @unique
+  contractAddress      String?
+  riffId               String   @unique
+  riff                 Riff     @relation(fields: [riffId], references: [id])
+  price                Float
+  currency             String   @default("RIFF")
+  royaltyPercentage    Float    @default(10)
+  enableStaking        Boolean  @default(true)
+  customRoyaltyShare   Float    @default(50)
+  unlockSourceFiles    Boolean  @default(false)
+  unlockRemixRights    Boolean  @default(false)
+  unlockPrivateMessages Boolean  @default(false)
+  unlockBackstageContent Boolean @default(false)
+  ownerId              String
+  owner                User     @relation(fields: [ownerId], references: [id])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Staking {
+  id            String   @id @default(uuid())
+  amount        Float
+  riffId        String
+  riff          Riff     @relation(fields: [riffId], references: [id])
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  stakedAt      DateTime @default(now())
+  unlockAt      DateTime
+  royaltiesEarned Float   @default(0)
+  status        String   @default("locked") // locked, unlocked, withdrawn
+  updatedAt     DateTime @updatedAt
+}
+
+model Tip {
+  id        String   @id @default(uuid())
+  amount    Float
+  riffId    String
+  riff      Riff     @relation(fields: [riffId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String?
+  createdAt DateTime @default(now())
+}
+
+model Token {
+  id        String   @id @default(uuid())
+  address   String   @unique
+  symbol    String
+  name      String
+  decimals  Int
+  totalSupply String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
