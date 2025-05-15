@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,22 +11,28 @@ datasource db {
 }
 
 model User {
-  id             String    @id @default(uuid())
-  name           String?
-  email          String?   @unique
-  emailVerified  DateTime?
-  image          String?
-  bio            String?
-  location       String?
-  ensName        String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  wallets        Wallet[]
-  riffs          Riff[]
-  nfts           NFT[]
-  stakingRecords Staking[]
-  tips           Tip[]
-  collections    Collection[]
+  id               String           @id @default(uuid())
+  name             String?
+  email            String?          @unique
+  emailVerified    DateTime?
+  image            String?
+  bio              String?
+  location         String?
+  ensName          String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  wallets          Wallet[]
+  riffs            Riff[]
+  nfts             NFT[]
+  stakingRecords   Staking[]
+  tips             Tip[]
+  collections      Collection[]
+  likes            Like[]
+  comments         Comment[]
+  activities       Activity[]       @relation("UserActivities")
+  targetActivities Activity[]       @relation("TargetUserActivities")
+  stakingSettings  StakingSettings?
+  tippingTiers     TippingTier[]
 }
 
 model Wallet {
@@ -36,27 +45,30 @@ model Wallet {
 }
 
 model Riff {
-  id              String      @id @default(uuid())
-  title           String
-  description     String?
-  audioUrl        String
-  coverImageUrl   String?
-  genre           String?
-  mood            String?
-  instrument      String?
-  keySignature    String?
-  timeSignature   String?
-  isBargainBin    Boolean     @default(false)
-  duration        Float?
-  userId          String
-  user            User        @relation(fields: [userId], references: [id])
-  collectionId    String?
-  collection      Collection? @relation(fields: [collectionId], references: [id])
-  nft             NFT?
-  stakingRecords  Staking[]
-  tips            Tip[]
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  id             String      @id @default(uuid())
+  title          String
+  description    String?
+  audioUrl       String
+  coverImageUrl  String?
+  genre          String?
+  mood           String?
+  instrument     String?
+  keySignature   String?
+  timeSignature  String?
+  isBargainBin   Boolean     @default(false)
+  duration       Float?
+  userId         String
+  user           User        @relation(fields: [userId], references: [id])
+  collectionId   String?
+  collection     Collection? @relation(fields: [collectionId], references: [id])
+  nft            NFT?
+  stakingRecords Staking[]
+  tips           Tip[]
+  likes          Like[]
+  comments       Comment[]
+  activities     Activity[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }
 
 model Collection {
@@ -70,38 +82,38 @@ model Collection {
 }
 
 model NFT {
-  id                   String   @id @default(uuid())
-  tokenId              String?  @unique
-  contractAddress      String?
-  riffId               String   @unique
-  riff                 Riff     @relation(fields: [riffId], references: [id])
-  price                Float
-  currency             String   @default("RIFF")
-  royaltyPercentage    Float    @default(10)
-  enableStaking        Boolean  @default(true)
-  customRoyaltyShare   Float    @default(50)
-  unlockSourceFiles    Boolean  @default(false)
-  unlockRemixRights    Boolean  @default(false)
-  unlockPrivateMessages Boolean  @default(false)
-  unlockBackstageContent Boolean @default(false)
-  ownerId              String
-  owner                User     @relation(fields: [ownerId], references: [id])
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                     String   @id @default(uuid())
+  tokenId                String?  @unique
+  contractAddress        String?
+  riffId                 String   @unique
+  riff                   Riff     @relation(fields: [riffId], references: [id])
+  price                  Float
+  currency               String   @default("RIFF")
+  royaltyPercentage      Float    @default(10)
+  enableStaking          Boolean  @default(true)
+  customRoyaltyShare     Float    @default(50)
+  unlockSourceFiles      Boolean  @default(false)
+  unlockRemixRights      Boolean  @default(false)
+  unlockPrivateMessages  Boolean  @default(false)
+  unlockBackstageContent Boolean  @default(false)
+  ownerId                String
+  owner                  User     @relation(fields: [ownerId], references: [id])
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
 model Staking {
-  id            String   @id @default(uuid())
-  amount        Float
-  riffId        String
-  riff          Riff     @relation(fields: [riffId], references: [id])
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
-  stakedAt      DateTime @default(now())
-  unlockAt      DateTime
-  royaltiesEarned Float   @default(0)
-  status        String   @default("locked") // locked, unlocked, withdrawn
-  updatedAt     DateTime @updatedAt
+  id              String   @id @default(uuid())
+  amount          Float
+  riffId          String
+  riff            Riff     @relation(fields: [riffId], references: [id])
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  stakedAt        DateTime @default(now())
+  unlockAt        DateTime
+  royaltiesEarned Float    @default(0)
+  status          String   @default("locked") // locked, unlocked, withdrawn
+  updatedAt       DateTime @updatedAt
 }
 
 model Tip {
@@ -116,12 +128,80 @@ model Tip {
 }
 
 model Token {
-  id        String   @id @default(uuid())
-  address   String   @unique
-  symbol    String
-  name      String
-  decimals  Int
+  id          String   @id @default(uuid())
+  address     String   @unique
+  symbol      String
+  name        String
+  decimals    Int
   totalSupply String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  riffId    String
+  riff      Riff     @relation(fields: [riffId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, riffId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  riffId    String
+  riff      Riff     @relation(fields: [riffId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Activity {
+  id           String   @id @default(uuid())
+  type         String // upload, tip, like, comment, stake, purchase
+  userId       String
+  user         User     @relation("UserActivities", fields: [userId], references: [id])
+  targetUserId String?
+  targetUser   User?    @relation("TargetUserActivities", fields: [targetUserId], references: [id])
+  riffId       String?
+  riff         Riff?    @relation(fields: [riffId], references: [id])
+  comment      String?
+  amount       Float?
+  isPublic     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model StakingSettings {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id])
+  stakingEnabled        Boolean  @default(true)
+  defaultRoyalty        Float    @default(10)
+  minimumStake          Float    @default(500)
+  marketplaceRoyalty    Boolean  @default(true)
+  remixesRoyalty        Boolean  @default(true)
+  derivativesRoyalty    Boolean  @default(true)
+  collaborationsRoyalty Boolean  @default(true)
+  licensingRoyalty      Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model TippingTier {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  name           String
+  amount         Float
+  description    String
+  perks          String[] // Array of perks
+  image          String?
+  isActive       Boolean  @default(true)
+  supporterCount Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

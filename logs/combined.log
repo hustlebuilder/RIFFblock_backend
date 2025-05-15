@@ -1,2 +1,22 @@
 {"level":"info","message":"Server started on port 3001","service":"riffblock-api","timestamp":"2025-05-15 04:33:13"}
 {"level":"info","message":"Environment: development","service":"riffblock-api","timestamp":"2025-05-15 04:33:13"}
+{"level":"info","message":"Server started on port 3001","service":"riffblock-api","timestamp":"2025-05-15 06:51:39"}
+{"level":"info","message":"Environment: development","service":"riffblock-api","timestamp":"2025-05-15 06:51:39"}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"Authentication failed: No token provided","method":"POST","path":"/connect-wallet","service":"riffblock-api","timestamp":"2025-05-15 07:22:13"}
+{"level":"http","message":"POST /api/users/connect-wallet 401 - - {\"walletAddress\":\"0xef4f590409347fe4341097cebb18e01b16168789\"} - {\"message\":\"Authentication required\"}","service":"riffblock-api","timestamp":"2025-05-15 07:22:13"}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"Authentication failed: No token provided","method":"GET","path":"/profile","service":"riffblock-api","timestamp":"2025-05-15 07:22:59"}
+{"level":"http","message":"GET /api/users/profile 401 - - {} - {\"message\":\"Authentication required\"}","service":"riffblock-api","timestamp":"2025-05-15 07:22:59"}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"Authentication failed: No token provided","method":"GET","path":"/profile","service":"riffblock-api","timestamp":"2025-05-15 07:22:59"}
+{"level":"http","message":"GET /api/users/profile 401 - - {} - {\"message\":\"Authentication required\"}","service":"riffblock-api","timestamp":"2025-05-15 07:22:59"}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"Authentication failed: No token provided","method":"GET","path":"/profile","service":"riffblock-api","timestamp":"2025-05-15 07:25:35"}
+{"level":"http","message":"GET /api/users/profile 401 - - {} - {\"message\":\"Authentication required\"}","service":"riffblock-api","timestamp":"2025-05-15 07:25:35"}
+{"ip":"::ffff:127.0.0.1","level":"warn","message":"Authentication failed: No token provided","method":"GET","path":"/profile","service":"riffblock-api","timestamp":"2025-05-15 07:25:35"}
+{"level":"http","message":"GET /api/users/profile 401 - - {} - {\"message\":\"Authentication required\"}","service":"riffblock-api","timestamp":"2025-05-15 07:25:35"}
+{"level":"info","message":"Server started on port 3001","service":"riffblock-api","timestamp":"2025-05-15 08:02:43"}
+{"level":"info","message":"Environment: development","service":"riffblock-api","timestamp":"2025-05-15 08:02:43"}
+{"level":"info","message":"Server started on port 3001","service":"riffblock-api","timestamp":"2025-05-15 08:03:18"}
+{"level":"info","message":"Environment: development","service":"riffblock-api","timestamp":"2025-05-15 08:03:18"}
+{"level":"info","message":"Server started on port 3001","service":"riffblock-api","timestamp":"2025-05-15 08:04:22"}
+{"level":"info","message":"Environment: development","service":"riffblock-api","timestamp":"2025-05-15 08:04:22"}
+{"level":"info","message":"Server started on port 3001","service":"riffblock-api","timestamp":"2025-05-15 08:14:29"}
+{"level":"info","message":"Environment: development","service":"riffblock-api","timestamp":"2025-05-15 08:14:29"}
