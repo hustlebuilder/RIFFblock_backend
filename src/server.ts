@@ -1,42 +1,73 @@
 import express from "express"
 import cors from "cors"
-import dotenv from "dotenv"
+import helmet from "helmet"
+import { PrismaClient } from "@prisma/client"
 import { userRoutes } from "./api/routes/userRoutes"
 import { riffRoutes } from "./api/routes/riffRoutes"
 import { nftRoutes } from "./api/routes/nftRoutes"
 import { stakingRoutes } from "./api/routes/stakingRoutes"
 import { tokenRoutes } from "./api/routes/tokenRoutes"
-import { authMiddleware } from "./api/middleware/authMiddleware"
+import { captureResponseBody, httpLogger } from "./middleware/requestLogger"
+import logger from "./config/logger"
 
-// Load environment variables
-dotenv.config()
-
+// Initialize Express app
 const app = express()
-const PORT = process.env.PORT || 5000
+const prisma = new PrismaClient()
+const PORT = process.env.PORT || 3001
 
 // Middleware
-app.use(cors())
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(helmet()) // Security headers
+app.use(cors()) // CORS
+app.use(express.json()) // Parse JSON bodies
+app.use(express.urlencoded({ extended: true })) // Parse URL-encoded bodies
 
-// Routes
+// Request logging
+app.use(captureResponseBody)
+app.use(httpLogger)
+
+// API routes
 app.use("/api/users", userRoutes)
 app.use("/api/riffs", riffRoutes)
 app.use("/api/nfts", nftRoutes)
 app.use("/api/staking", stakingRoutes)
 app.use("/api/tokens", tokenRoutes)
 
-// Protected routes example
-app.get("/api/protected", authMiddleware, (req, res) => {
-  res.json({ message: "This is a protected route", user: req.user })
-})
-
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" })
 })
 
+// Global error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  logger.error(`Unhandled error: ${err.message}`, {
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    ip: req.ip,
+  })
+
+  res.status(500).json({
+    message: "An unexpected error occurred",
+    error: process.env.NODE_ENV === "production" ? undefined : err.message,
+  })
+})
+
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+  logger.info(`Server started on port ${PORT}`)
+  logger.info(`Environment: ${process.env.NODE_ENV || "development"}`)
 })
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (error) => {
+  logger.error(`Uncaught Exception: ${error.message}`, { stack: error.stack })
+  process.exit(1)
+})
+
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (reason, promise) => {
+  logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`)
+  process.exit(1)
+})
+
+export default app
