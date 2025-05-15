@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express"
 import jwt from "jsonwebtoken"
 import { PrismaClient } from "@prisma/client"
+import logger from "../../config/logger"
 
 const prisma = new PrismaClient()
 
@@ -15,33 +16,48 @@ declare global {
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization
+    // Get token from header
+    const token = req.header("Authorization")?.replace("Bearer ", "")
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token) {
+      logger.warn("Authentication failed: No token provided", {
+        path: req.path,
+        method: req.method,
+        ip: req.ip,
+      })
       return res.status(401).json({ message: "Authentication required" })
     }
 
-    const token = authHeader.split(" ")[1]
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret") as any
+    logger.debug("Token verified", { userId: decoded.id })
 
-    if (!token) {
-      return res.status(401).json({ message: "Authentication token missing" })
-    }
-
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET || "default_secret")
-
+    // Check if user exists
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: decoded.id },
     })
 
     if (!user) {
-      return res.status(401).json({ message: "User not found" })
+      logger.warn("Authentication failed: User not found", { userId: decoded.id })
+      return res.status(401).json({ message: "Authentication failed" })
     }
 
+    // Add user to request
     req.user = user
+    logger.debug("User authenticated successfully", {
+      userId: user.id,
+      path: req.path,
+      method: req.method,
+    })
+
     next()
   } catch (error) {
-    console.error("Auth middleware error:", error)
-    return res.status(401).json({ message: "Invalid or expired token" })
+    logger.error(`Authentication error: ${error}`, {
+      path: req.path,
+      method: req.method,
+      ip: req.ip,
+    })
+    res.status(401).json({ message: "Authentication failed" })
   }
 }
 
@@ -51,6 +67,7 @@ export const walletAuthMiddleware = async (req: Request, res: Response, next: Ne
     const { walletAddress } = req.body
 
     if (!walletAddress) {
+      logger.warn(`Wallet authentication failed: No wallet address`, { path: req.path })
       return res.status(400).json({ message: "Wallet address required" })
     }
 
@@ -62,13 +79,15 @@ export const walletAuthMiddleware = async (req: Request, res: Response, next: Ne
     })
 
     if (!wallet) {
+      logger.warn(`Wallet authentication failed: Wallet not registered`, { walletAddress, path: req.path })
       return res.status(401).json({ message: "Wallet not registered" })
     }
 
     req.user = wallet.user
+    logger.debug(`Wallet authenticated: ${walletAddress} for user: ${wallet.user.id}`, { path: req.path })
     next()
   } catch (error) {
-    console.error("Wallet auth middleware error:", error)
+    logger.error(`Wallet auth middleware error: ${error}`, { path: req.path })
     return res.status(401).json({ message: "Authentication failed" })
   }
 }

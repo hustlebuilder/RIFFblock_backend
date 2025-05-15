@@ -1,6 +1,7 @@
 import express from "express"
 import { PrismaClient } from "@prisma/client"
 import { authMiddleware } from "../middleware/authMiddleware"
+import logger from "../../config/logger"
 
 const router = express.Router()
 const prisma = new PrismaClient()
@@ -9,6 +10,7 @@ const prisma = new PrismaClient()
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id
+    logger.info(`Fetching profile for user ${userId}`)
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -30,12 +32,14 @@ router.get("/profile", authMiddleware, async (req, res) => {
     })
 
     if (!user) {
+      logger.warn(`User not found: ${userId}`)
       return res.status(404).json({ message: "User not found" })
     }
 
+    logger.debug(`User profile fetched successfully: ${userId}`)
     res.json(user)
   } catch (error) {
-    console.error("Error fetching user profile:", error)
+    logger.error(`Error fetching user profile: ${error}`, { userId: req.user?.id })
     res.status(500).json({ message: "Server error" })
   }
 })
@@ -45,6 +49,9 @@ router.put("/profile", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id
     const { name, bio, location, ensName, image } = req.body
+
+    logger.info(`Updating profile for user ${userId}`)
+    logger.debug("Profile update data", { name, bio, location, ensName, hasImage: !!image })
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
@@ -57,9 +64,10 @@ router.put("/profile", authMiddleware, async (req, res) => {
       },
     })
 
+    logger.info(`Profile updated successfully for user ${userId}`)
     res.json(updatedUser)
   } catch (error) {
-    console.error("Error updating user profile:", error)
+    logger.error(`Error updating user profile: ${error}`, { userId: req.user?.id })
     res.status(500).json({ message: "Server error" })
   }
 })
@@ -70,12 +78,15 @@ router.post("/connect-wallet", authMiddleware, async (req, res) => {
     const userId = req.user.id
     const { walletAddress } = req.body
 
+    logger.info(`Connecting wallet for user ${userId}`, { walletAddress })
+
     // Check if wallet already exists
     const existingWallet = await prisma.wallet.findUnique({
       where: { address: walletAddress },
     })
 
     if (existingWallet) {
+      logger.warn(`Wallet already connected to a user: ${walletAddress}`)
       return res.status(400).json({ message: "Wallet already connected to a user" })
     }
 
@@ -87,9 +98,13 @@ router.post("/connect-wallet", authMiddleware, async (req, res) => {
       },
     })
 
+    logger.info(`Wallet connected successfully: ${walletAddress}`)
     res.json(wallet)
   } catch (error) {
-    console.error("Error connecting wallet:", error)
+    logger.error(`Error connecting wallet: ${error}`, {
+      userId: req.user?.id,
+      walletAddress: req.body?.walletAddress,
+    })
     res.status(500).json({ message: "Server error" })
   }
 })
@@ -98,6 +113,7 @@ router.post("/connect-wallet", authMiddleware, async (req, res) => {
 router.get("/riffs", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id
+    logger.info(`Fetching riffs for user ${userId}`)
 
     const riffs = await prisma.riff.findMany({
       where: { userId },
@@ -109,9 +125,10 @@ router.get("/riffs", authMiddleware, async (req, res) => {
       },
     })
 
+    logger.debug(`Found ${riffs.length} riffs for user ${userId}`)
     res.json(riffs)
   } catch (error) {
-    console.error("Error fetching user riffs:", error)
+    logger.error(`Error fetching user riffs: ${error}`, { userId: req.user?.id })
     res.status(500).json({ message: "Server error" })
   }
 })
@@ -120,6 +137,7 @@ router.get("/riffs", authMiddleware, async (req, res) => {
 router.get("/collections", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id
+    logger.info(`Fetching collections for user ${userId}`)
 
     const collections = await prisma.collection.findMany({
       where: { userId },
@@ -128,9 +146,10 @@ router.get("/collections", authMiddleware, async (req, res) => {
       },
     })
 
+    logger.debug(`Found ${collections.length} collections for user ${userId}`)
     res.json(collections)
   } catch (error) {
-    console.error("Error fetching user collections:", error)
+    logger.error(`Error fetching user collections: ${error}`, { userId: req.user?.id })
     res.status(500).json({ message: "Server error" })
   }
 })
@@ -139,6 +158,7 @@ router.get("/collections", authMiddleware, async (req, res) => {
 router.get("/staking", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id
+    logger.info(`Fetching staking records for user ${userId}`)
 
     const stakingRecords = await prisma.staking.findMany({
       where: { userId },
@@ -152,9 +172,10 @@ router.get("/staking", authMiddleware, async (req, res) => {
       },
     })
 
+    logger.debug(`Found ${stakingRecords.length} staking records for user ${userId}`)
     res.json(stakingRecords)
   } catch (error) {
-    console.error("Error fetching staking records:", error)
+    logger.error(`Error fetching staking records: ${error}`, { userId: req.user?.id })
     res.status(500).json({ message: "Server error" })
   }
 })
