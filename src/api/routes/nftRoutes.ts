@@ -97,8 +97,8 @@ router.post("/mint", authMiddleware, async (req, res) => {
     // Mint the NFT on the blockchain
     const { tokenId, contractAddress } = await mintNFT(riff.audioUrl, {
       title: riff.title,
-      description: riff.description,
-      coverImage: riff.coverImageUrl,
+      description: riff.description || "",
+      coverImage: riff.coverImageUrl || "",
       royaltyPercentage: Number.parseFloat(royaltyPercentage),
     })
 
